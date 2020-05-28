@@ -57,8 +57,8 @@ public class Lexer {
                 case SINGLE_MINUS:
                     singleMinusState(c);
                     break;
-                case SINGLE_OPERATOR_MAYBE_BEFORE_EQUAL:
-                    singleOperatorMaybeBeforeEqualState(c);
+                case OPERATOR_MAYBE_BEFORE_EQUAL:
+                    operatorMaybeBeforeEqualState(c);
                     break;
                 case SINGLE_LESS_THAN:
                     singleLessThanState(c);
@@ -68,6 +68,15 @@ public class Lexer {
                     break;
                 case DOUBLE_GREATER_THAN:
                     doubleGreaterThanState(c);
+                    break;
+                case SINGLE_COLON:
+                    singleColonState(c);
+                    break;
+                case SINGLE_AMPERSAND:
+                    singleAmpersandState(c);
+                    break;
+                case SINGLE_VERTICAL_BAR:
+                    singleVerticalBarState(c);
                     break;
             }
         }
@@ -95,7 +104,7 @@ public class Lexer {
 
     private void addToken(TokenType tokenType, char value) {
         tokens.add(new Token(tokenType, String.valueOf(value)));
-        System.out.println("Add token with type: " + tokenType.toString() + " and byte value: " + (byte) value);
+        //System.out.println("Add token with type: " + tokenType.toString() + " and byte value: " + (byte) value);
     }
 
     //buffer is empty
@@ -109,11 +118,20 @@ public class Lexer {
         } else if (c == '-') {
             addCharacterToBuffer(c, State.SINGLE_MINUS);
         } else if (c == '=' || c == '^' || c == '%' || c == '!' || c == '*') {//^, %, !, =, *
-            addCharacterToBuffer(c, State.SINGLE_OPERATOR_MAYBE_BEFORE_EQUAL);
+            addCharacterToBuffer(c, State.OPERATOR_MAYBE_BEFORE_EQUAL);
         } else if (c == '<') {
             addCharacterToBuffer(c, State.SINGLE_LESS_THAN);
         } else if (c == '>') {
             addCharacterToBuffer(c, State.SINGLE_GREATER_THAN);
+        } else if (c == '?' || c == '~') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else if (c == ':') {
+            addCharacterToBuffer(c, State.SINGLE_COLON);
+        } else if (c == '&') {
+            addCharacterToBuffer(c, State.SINGLE_AMPERSAND);
+        } else if (c == '|') {
+            addCharacterToBuffer(c, State.SINGLE_VERTICAL_BAR);
         }
 
     }
@@ -186,7 +204,7 @@ public class Lexer {
         }
     }
 
-    private void singleOperatorMaybeBeforeEqualState(char c) {
+    private void operatorMaybeBeforeEqualState(char c) {
         if (c == '=') {//==
             addCharacterToBuffer(c, State.START);
             addToken(TokenType.OPERATOR);
@@ -199,7 +217,7 @@ public class Lexer {
 
     private void singleLessThanState(char c) {
         if (c == '<') {//<<
-            addCharacterToBuffer(c, State.SINGLE_OPERATOR_MAYBE_BEFORE_EQUAL);
+            addCharacterToBuffer(c, State.OPERATOR_MAYBE_BEFORE_EQUAL);
         } else if (c == '=') {//<=
             addCharacterToBuffer(c, State.START);
             addToken(TokenType.OPERATOR);
@@ -225,11 +243,44 @@ public class Lexer {
 
     private void doubleGreaterThanState(char c) {
         if (c == '>') {//>>>
-            addCharacterToBuffer(c, State.SINGLE_OPERATOR_MAYBE_BEFORE_EQUAL);
+            addCharacterToBuffer(c, State.OPERATOR_MAYBE_BEFORE_EQUAL);
         } else if (c == '=') {//>>=
             addCharacterToBuffer(c, State.START);
             addToken(TokenType.OPERATOR);
         } else {//>>
+            addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void singleColonState(char c) {
+        if (c == ':') {// ::
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else {
+            addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void singleAmpersandState(char c) {
+        if (c == '&' || c == '=') {// && &=
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else {
+            addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void singleVerticalBarState(char c) {
+        if (c == '|' || c == '=') {// || |=
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else {
             addToken(TokenType.OPERATOR);
             currentIndex--;
             state = State.START;

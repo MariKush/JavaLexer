@@ -52,6 +52,12 @@ public class Lexer {
                 case MULTI_LINE_COMMENT_AND_STAR:
                     multiLineCommentAndStarState(c);
                     break;
+                case SINGLE_PLUS:
+                    singlePlusState(c);
+                    break;
+                case SINGLE_MINUS:
+                    singleMinusState(c);
+                    break;
             }
         }
     }
@@ -87,23 +93,28 @@ public class Lexer {
             addToken(TokenType.WHITE_SPACE, c);
         } else if (c == '/') {
             addCharacterToBuffer(c, State.SINGLE_SLASH);
+        } else if (c == '+') {
+            addCharacterToBuffer(c, State.SINGLE_PLUS);
+        } else if (c == '-') {
+            addCharacterToBuffer(c, State.SINGLE_PLUS);
         }
 
     }
 
-    //possible states: //, /*, /=...
+    //possible states: //, /*, /=
     private void singleSlashState(char c) {
         if (c == '/') {
             addCharacterToBuffer(c, State.SINGLE_LINE_COMMENT);
         } else if (c == '*') {
             addCharacterToBuffer(c, State.MULTI_LINE_COMMENT);
-        } /*else if (c == '=') {
-            addToken(TokenType.OPERATOR, buffer.toString());
+        } else if (c == '=') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
         } else {
-            addToken(TokenType.OPERATOR, buffer.toString());
+            addToken(TokenType.OPERATOR);
             currentIndex--;
             state = State.START;
-        }*/
+        }
     }
 
     private void singleLineCommentState(char c) {
@@ -133,6 +144,28 @@ public class Lexer {
             addCharacterToBuffer(c);
         } else {
             addCharacterToBuffer(c, State.MULTI_LINE_COMMENT);
+        }
+    }
+
+    private void singlePlusState(char c) {
+        if (c == '+' || c == '=') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else {
+            addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void singleMinusState(char c) {
+        if (c == '-' || c == '=') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else {
+            addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
         }
     }
 }

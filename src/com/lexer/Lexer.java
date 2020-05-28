@@ -29,6 +29,7 @@ public class Lexer {
         byte[] data = fileInputStream.readAllBytes();
         fileInputStream.close();
         wholeFile = new String(data, StandardCharsets.UTF_8).replace("\r", "");
+        wholeFile += " ";
     }
 
     private void analyser() {
@@ -36,6 +37,9 @@ public class Lexer {
         for (currentIndex = 0; currentIndex < numberOfCharacters; currentIndex++) {
             char c = wholeFile.charAt(currentIndex);
             switch (state) {
+                case ERROR:
+                    //TODO
+                    break;
                 case START:
                     startState(c);
                     break;
@@ -77,6 +81,12 @@ public class Lexer {
                     break;
                 case SINGLE_VERTICAL_BAR:
                     singleVerticalBarState(c);
+                    break;
+                case SINGLE_DOT:
+                    singleDotState(c);
+                    break;
+                case DOUBLE_DOT:
+                    doubleDotState(c);
                     break;
             }
         }
@@ -132,6 +142,12 @@ public class Lexer {
             addCharacterToBuffer(c, State.SINGLE_AMPERSAND);
         } else if (c == '|') {
             addCharacterToBuffer(c, State.SINGLE_VERTICAL_BAR);
+        } else if (c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']'
+                || c == ';' || c == ',' || c == '@') { //( ) { } [ ] ; , @
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.PUNCTUATION);
+        } else if (c == '.') {
+            addCharacterToBuffer(c, State.SINGLE_DOT);
         }
 
     }
@@ -257,7 +273,7 @@ public class Lexer {
     private void singleColonState(char c) {
         if (c == ':') {// ::
             addCharacterToBuffer(c, State.START);
-            addToken(TokenType.OPERATOR);
+            addToken(TokenType.PUNCTUATION);
         } else {
             addToken(TokenType.OPERATOR);
             currentIndex--;
@@ -282,6 +298,27 @@ public class Lexer {
             addToken(TokenType.OPERATOR);
         } else {
             addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void singleDotState(char c){
+        if(c == '.') {//..
+            addCharacterToBuffer(c, State.DOUBLE_DOT);
+        } else {//.
+            addToken(TokenType.PUNCTUATION);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void doubleDotState(char c){
+        if(c == '.'){//...
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.PUNCTUATION);
+        } else{//..
+            addToken(TokenType.ERROR);
             currentIndex--;
             state = State.START;
         }

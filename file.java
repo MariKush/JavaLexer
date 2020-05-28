@@ -2,7 +2,7 @@
 //qwe*qwe*/*
 /* ieie //
 `a**/
-a - b
-c +- eg
+a = b
+c == eg
 f -= f
 

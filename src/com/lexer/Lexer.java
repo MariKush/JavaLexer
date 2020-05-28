@@ -58,6 +58,9 @@ public class Lexer {
                 case SINGLE_MINUS:
                     singleMinusState(c);
                     break;
+                case SINGLE_EQUAL:
+                    singleEqualState(c);
+                    break;
             }
         }
     }
@@ -97,6 +100,8 @@ public class Lexer {
             addCharacterToBuffer(c, State.SINGLE_PLUS);
         } else if (c == '-') {
             addCharacterToBuffer(c, State.SINGLE_PLUS);
+        } else if (c == '=') {
+            addCharacterToBuffer(c, State.SINGLE_EQUAL);
         }
 
     }
@@ -160,6 +165,17 @@ public class Lexer {
 
     private void singleMinusState(char c) {
         if (c == '-' || c == '=') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else {
+            addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void singleEqualState(char c) {
+        if (c == '='){
             addCharacterToBuffer(c, State.START);
             addToken(TokenType.OPERATOR);
         } else {

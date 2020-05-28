@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class Lexer {
 
@@ -58,8 +57,17 @@ public class Lexer {
                 case SINGLE_MINUS:
                     singleMinusState(c);
                     break;
-                case SINGLE_EQUAL:
-                    singleEqualState(c);
+                case SINGLE_OPERATOR_MAYBE_BEFORE_EQUAL:
+                    singleOperatorMaybeBeforeEqualState(c);
+                    break;
+                case SINGLE_LESS_THAN:
+                    singleLessThanState(c);
+                    break;
+                case SINGLE_GREATER_THAN:
+                    singleGreaterThanState(c);
+                    break;
+                case DOUBLE_GREATER_THAN:
+                    doubleGreaterThanState(c);
                     break;
             }
         }
@@ -99,9 +107,13 @@ public class Lexer {
         } else if (c == '+') {
             addCharacterToBuffer(c, State.SINGLE_PLUS);
         } else if (c == '-') {
-            addCharacterToBuffer(c, State.SINGLE_PLUS);
-        } else if (c == '=') {
-            addCharacterToBuffer(c, State.SINGLE_EQUAL);
+            addCharacterToBuffer(c, State.SINGLE_MINUS);
+        } else if (c == '=' || c == '^' || c == '%' || c == '!' || c == '*') {//^, %, !, =, *
+            addCharacterToBuffer(c, State.SINGLE_OPERATOR_MAYBE_BEFORE_EQUAL);
+        } else if (c == '<') {
+            addCharacterToBuffer(c, State.SINGLE_LESS_THAN);
+        } else if (c == '>') {
+            addCharacterToBuffer(c, State.SINGLE_GREATER_THAN);
         }
 
     }
@@ -153,7 +165,7 @@ public class Lexer {
     }
 
     private void singlePlusState(char c) {
-        if (c == '+' || c == '=') {
+        if (c == '+' || c == '=') {// ++ +=
             addCharacterToBuffer(c, State.START);
             addToken(TokenType.OPERATOR);
         } else {
@@ -164,24 +176,65 @@ public class Lexer {
     }
 
     private void singleMinusState(char c) {
-        if (c == '-' || c == '=') {
+        if (c == '-' || c == '=' || c == '>') {//-- -= ->
             addCharacterToBuffer(c, State.START);
             addToken(TokenType.OPERATOR);
-        } else {
+        } else {//-
             addToken(TokenType.OPERATOR);
             currentIndex--;
             state = State.START;
         }
     }
 
-    private void singleEqualState(char c) {
-        if (c == '='){
+    private void singleOperatorMaybeBeforeEqualState(char c) {
+        if (c == '=') {//==
             addCharacterToBuffer(c, State.START);
             addToken(TokenType.OPERATOR);
-        } else {
+        } else {//=
             addToken(TokenType.OPERATOR);
             currentIndex--;
             state = State.START;
         }
     }
+
+    private void singleLessThanState(char c) {
+        if (c == '<') {//<<
+            addCharacterToBuffer(c, State.SINGLE_OPERATOR_MAYBE_BEFORE_EQUAL);
+        } else if (c == '=') {//<=
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else {//<
+            addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void singleGreaterThanState(char c) {
+        if (c == '>') {//>>
+            addCharacterToBuffer(c, State.DOUBLE_GREATER_THAN);
+        } else if (c == '=') {//>=
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else {//>
+            addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void doubleGreaterThanState(char c) {
+        if (c == '>') {//>>>
+            addCharacterToBuffer(c, State.SINGLE_OPERATOR_MAYBE_BEFORE_EQUAL);
+        } else if (c == '=') {//>>=
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.OPERATOR);
+        } else {//>>
+            addToken(TokenType.OPERATOR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+
 }

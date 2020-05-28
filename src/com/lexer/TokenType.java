@@ -2,7 +2,7 @@ package com.lexer;
 
 public enum TokenType {
     ERROR,
-    WHITESPACE,
+    WHITE_SPACE,
     NUMERIC,
     LITERAL,
     SYMBOLIC,

@@ -14,11 +14,11 @@ public class Lexer {
 
     private State state = State.START;
 
-    private StringBuilder buffer;
+    private StringBuilder buffer = new StringBuilder();
 
-    private List<Token> tokens = new LinkedList<>();;
+    private List<Token> tokens = new LinkedList<>();
 
-    private static final Logger log = Logger.getLogger(Lexer.class.getName());
+    private int currentIndex;
 
     public Lexer(String filePath) throws IOException {
         readWholeFile(filePath);
@@ -26,58 +26,113 @@ public class Lexer {
     }
 
     private void readWholeFile(String filePath) throws IOException {
-        File file = new File(filePath);
-        FileInputStream fileInputStream = new FileInputStream(file);
-        byte[] data = new byte[(int) file.length()];
-        if(fileInputStream.read(data) != -1) {
-            log.info("File " + filePath + " read correctly");
-        }
-        else{
-            log.severe("File " + filePath + "  read incorrectly");
-        }
+        FileInputStream fileInputStream = new FileInputStream(new File(filePath));
+        byte[] data = fileInputStream.readAllBytes();
         fileInputStream.close();
-        wholeFile = new String(data, StandardCharsets.UTF_8);
-        System.out.println(wholeFile);
+        wholeFile = new String(data, StandardCharsets.UTF_8).replace("\r", "");
     }
 
     private void analyser() {
         int numberOfCharacters = wholeFile.length();
-        for(int i = 0; i < numberOfCharacters; i++) {
-            char c = wholeFile.charAt(i);
-            switch (state){
-                case START: startState(c);
+        for (currentIndex = 0; currentIndex < numberOfCharacters; currentIndex++) {
+            char c = wholeFile.charAt(currentIndex);
+            switch (state) {
+                case START:
+                    startState(c);
+                    break;
+                case SINGLE_SLASH:
+                    singleSlashState(c);
+                    break;
+                case SINGLE_LINE_COMMENT:
+                    singleLineCommentState(c);
+                    break;
+                case MULTI_LINE_COMMENT:
+                    multiLineCommentState(c);
+                    break;
+                case MULTI_LINE_COMMENT_AND_STAR:
+                    multiLineCommentAndStarState(c);
+                    break;
             }
         }
     }
 
-    private void addCurrentCharacterToBuffer(char c, State state) {
+
+    private void addCharacterToBuffer(char c) {
+        buffer.append(c);
+    }
+
+    private void addCharacterToBuffer(char c, State state) {
         buffer.append(c);
         this.state = state;
     }
 
     private void addToken(TokenType tokenType, String value) {
         tokens.add(new Token(tokenType, value));
-        log.info("Add token with type: " + tokenType.toString() + "  and value: " + value);
+        System.out.println("Add token with type: " + tokenType.toString() + " and value: " + value);
+    }
+
+    private void addToken(TokenType tokenType) {
+        addToken(tokenType, buffer.toString());
         buffer = new StringBuilder();
     }
 
     private void addToken(TokenType tokenType, char value) {
         tokens.add(new Token(tokenType, String.valueOf(value)));
-        log.info("Add token with type: " + tokenType.toString() + " and byte value: " + (byte)value);
-        buffer = new StringBuilder();
+        System.out.println("Add token with type: " + tokenType.toString() + " and byte value: " + (byte) value);
     }
 
     //buffer is empty
     private void startState(char c) {
-        if(Character.isWhitespace(c)) {
-            addToken(TokenType.WHITESPACE, c);
-            state = State.START;
-        } else if(c == '/') {
-            addCurrentCharacterToBuffer(c, State.SINGLE_SLASH);
+        if (Character.isWhitespace(c)) {
+            addToken(TokenType.WHITE_SPACE, c);
+        } else if (c == '/') {
+            addCharacterToBuffer(c, State.SINGLE_SLASH);
         }
 
     }
 
+    //possible states: //, /*, /=...
+    private void singleSlashState(char c) {
+        if (c == '/') {
+            addCharacterToBuffer(c, State.SINGLE_LINE_COMMENT);
+        } else if (c == '*') {
+            addCharacterToBuffer(c, State.MULTI_LINE_COMMENT);
+        } /*else if (c == '=') {
+            addToken(TokenType.OPERATOR, buffer.toString());
+        } else {
+            addToken(TokenType.OPERATOR, buffer.toString());
+            currentIndex--;
+            state = State.START;
+        }*/
+    }
 
+    private void singleLineCommentState(char c) {
+        if (c == '\n') {
+            addToken(TokenType.COMMENT);
+            addToken(TokenType.WHITE_SPACE, c);
+            state = State.START;
+        } else {
+            addCharacterToBuffer(c);
+        }
 
+    }
+
+    private void multiLineCommentState(char c) {
+        if (c == '*') {
+            addCharacterToBuffer(c, State.MULTI_LINE_COMMENT_AND_STAR);
+        } else {
+            addCharacterToBuffer(c);
+        }
+    }
+
+    private void multiLineCommentAndStarState(char c) {
+        if (c == '/') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.COMMENT);
+        } else if (c == '*') {
+            addCharacterToBuffer(c);
+        } else {
+            addCharacterToBuffer(c, State.MULTI_LINE_COMMENT);
+        }
+    }
 }

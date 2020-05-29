@@ -7,8 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
-import static javax.lang.model.SourceVersion.isKeyword;
-
 public class Lexer {
 
     private String wholeFile;
@@ -108,6 +106,30 @@ public class Lexer {
                 case BINARY_NUMBER:
                     binaryNumberState(c);
                     break;
+                case SYMBOLIC_CONSTANT:
+                    symbolicConstantState(c);
+                    break;
+                case BACKSLASH_IN_SYMBOLIC_CONSTANT:
+                    backslashInSymbolicConstantState(c);
+                    break;
+                case ONE_OCTAL_DIGIT_AFTER_BACKSLASH_IN_SYMBOLIC_CONSTANT:
+                    oneOctalDigitAfterBackslashInSymbolicConstantState(c);
+                    break;
+                case TWO_OCTAL_DIGIT_AFTER_BACKSLASH_IN_SYMBOLIC_CONSTANT:
+                    twoOctalDigitAfterBackslashInSymbolicConstantState(c);
+                    break;
+                case END_OF_SYMBOLIC_CONSTANT:
+                    endOfSymbolicConstantState(c);
+                    break;
+                case ERROR_READ_SYMBOLIC_CONSTANT:
+                    errorReadSymbolicConstantState(c);
+                    break;
+                case BACKSLASH_INSIDE_ERROR_READ_SYMBOLIC_CONSTANT:
+                    backslashInsideErrorReadSymbolicConstantState(c);
+                    break;
+                case LITERAL_CONSTANT:
+                    //literalConstantState(c);
+                    break;
 
             }
         }
@@ -175,6 +197,10 @@ public class Lexer {
             addCharacterToBuffer(c, State.SINGLE_ZERO);
         } else if (c >= '1' && c <= '9') {
             addCharacterToBuffer(c, State.DECIMAL_NUMBER);
+        } else if (c == '\'') {
+            addCharacterToBuffer(c, State.SYMBOLIC_CONSTANT);
+        } else if (c == '\"') {
+            addCharacterToBuffer(c, State.LITERAL_CONSTANT);
         }
 
     }
@@ -356,7 +382,7 @@ public class Lexer {
     private void identifierState(char c) {
         if (Character.isDigit(c) || Character.isLetter(c) || c == '_' || c == '$') {
             addCharacterToBuffer(c);
-        } else if (isKeyword(buffer)) {
+        } else if (SymbolType.isKeyword(buffer.toString())) {
             addToken(TokenType.KEYWORD);
             currentIndex--;
             state = State.START;
@@ -441,7 +467,86 @@ public class Lexer {
             addToken(TokenType.NUMERIC);
             currentIndex--;
             state = State.START;
+
         }
     }
+
+    //' in buffer
+    private void symbolicConstantState(char c) {
+        if (c == '\\') {//'\
+            addCharacterToBuffer(c, State.BACKSLASH_IN_SYMBOLIC_CONSTANT);
+        } else if (c == '\n') {
+            addToken(TokenType.ERROR);
+            addToken(TokenType.WHITE_SPACE, c);
+            state = State.START;
+        } else {
+            addCharacterToBuffer(c, State.END_OF_SYMBOLIC_CONSTANT);
+        }
+    }
+
+
+    //'\ in buffer
+    private void backslashInSymbolicConstantState(char c) {
+        if (c >= '0' && c <= '7') {
+            addCharacterToBuffer(c, State.ONE_OCTAL_DIGIT_AFTER_BACKSLASH_IN_SYMBOLIC_CONSTANT);
+        } else if (SymbolType.isEscapeSequence("\\" + c)) {
+            addCharacterToBuffer(c, State.END_OF_SYMBOLIC_CONSTANT);
+        } else {
+            addToken(TokenType.ERROR);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void oneOctalDigitAfterBackslashInSymbolicConstantState(char c) {
+        if (c >= '0' && c <= '7') {
+            addCharacterToBuffer(c, State.TWO_OCTAL_DIGIT_AFTER_BACKSLASH_IN_SYMBOLIC_CONSTANT);
+        } else {
+            currentIndex--;
+            state = State.END_OF_SYMBOLIC_CONSTANT;
+        }
+    }
+
+    private void twoOctalDigitAfterBackslashInSymbolicConstantState(char c) {
+        if (c >= '0' && c <= '7') {
+            addCharacterToBuffer(c, State.END_OF_SYMBOLIC_CONSTANT);
+        } else {
+            currentIndex--;
+            state = State.END_OF_SYMBOLIC_CONSTANT;
+        }
+    }
+
+    private void endOfSymbolicConstantState(char c) {
+        if (c == '\'') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.SYMBOLIC);
+        } else if (c == '\n') {
+            addToken(TokenType.ERROR);
+            addToken(TokenType.WHITE_SPACE, c);
+            state = State.START;
+        } else {
+            addCharacterToBuffer(c, State.ERROR_READ_SYMBOLIC_CONSTANT);
+        }
+    }
+
+    private void errorReadSymbolicConstantState(char c) {
+        if (c == '\n') {
+            addToken(TokenType.ERROR);
+            addToken(TokenType.WHITE_SPACE, c);
+            state = State.START;
+        } else if (c == '\'') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.ERROR);
+        } else if (c == '\\'){
+            addCharacterToBuffer(c, State.BACKSLASH_INSIDE_ERROR_READ_SYMBOLIC_CONSTANT);
+        } else {
+            addCharacterToBuffer(c);
+        }
+    }
+
+    private void backslashInsideErrorReadSymbolicConstantState(char c) {
+        addCharacterToBuffer(c, State.ERROR_READ_SYMBOLIC_CONSTANT);
+    }
+
 
 }

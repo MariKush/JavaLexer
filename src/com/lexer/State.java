@@ -1,7 +1,6 @@
 package com.lexer;
 
 public enum State {
-    ERROR,
     START,
     SINGLE_SLASH,
     SINGLE_LINE_COMMENT,
@@ -17,6 +16,6 @@ public enum State {
     SINGLE_AMPERSAND,
     SINGLE_VERTICAL_BAR,
     SINGLE_DOT,
-    DOUBLE_DOT
-
+    DOUBLE_DOT,
+    IDENTIFIER
 }

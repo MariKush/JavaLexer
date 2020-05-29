@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
+import static javax.lang.model.SourceVersion.isKeyword;
+
 public class Lexer {
 
     private String wholeFile;
@@ -29,7 +31,7 @@ public class Lexer {
         byte[] data = fileInputStream.readAllBytes();
         fileInputStream.close();
         wholeFile = new String(data, StandardCharsets.UTF_8).replace("\r", "");
-        wholeFile += " ";
+        wholeFile += "\n";
     }
 
     private void analyser() {
@@ -37,9 +39,6 @@ public class Lexer {
         for (currentIndex = 0; currentIndex < numberOfCharacters; currentIndex++) {
             char c = wholeFile.charAt(currentIndex);
             switch (state) {
-                case ERROR:
-                    //TODO
-                    break;
                 case START:
                     startState(c);
                     break;
@@ -88,6 +87,10 @@ public class Lexer {
                 case DOUBLE_DOT:
                     doubleDotState(c);
                     break;
+                case IDENTIFIER:
+                    identifierState(c);
+                    break;
+
             }
         }
     }
@@ -148,6 +151,8 @@ public class Lexer {
             addToken(TokenType.PUNCTUATION);
         } else if (c == '.') {
             addCharacterToBuffer(c, State.SINGLE_DOT);
+        } else if (Character.isLetter(c) || c == '_' || c == '$') {
+            addCharacterToBuffer(c, State.IDENTIFIER);
         }
 
     }
@@ -303,8 +308,8 @@ public class Lexer {
         }
     }
 
-    private void singleDotState(char c){
-        if(c == '.') {//..
+    private void singleDotState(char c) {
+        if (c == '.') {//..
             addCharacterToBuffer(c, State.DOUBLE_DOT);
         } else {//.
             addToken(TokenType.PUNCTUATION);
@@ -313,16 +318,32 @@ public class Lexer {
         }
     }
 
-    private void doubleDotState(char c){
-        if(c == '.'){//...
+    private void doubleDotState(char c) {
+        if (c == '.') {//...
             addCharacterToBuffer(c, State.START);
             addToken(TokenType.PUNCTUATION);
-        } else{//..
+        } else {//..
             addToken(TokenType.ERROR);
             currentIndex--;
             state = State.START;
         }
     }
+
+    private void identifierState(char c) {
+        if (Character.isDigit(c) || Character.isLetter(c) || c == '_' || c == '$') {
+            addCharacterToBuffer(c);
+        } else if (isKeyword(buffer)){
+            addToken(TokenType.KEYWORD);
+            currentIndex--;
+            state = State.START;
+        } else {
+            addToken(TokenType.IDENTIFIER);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+
 
 
 }

@@ -15,14 +15,20 @@ f -= f
 :
 
 ~   ?
-
+// (   )   {   }   [   ]   ;   ,   .   ...   @   ::
 
 &&  ||
 &   |
 &=  |=
 
-        (   )   {   }   [   ]   ;   ,   .   ...   @   ::
-..
-// (   )   {   }   [   ]   ;   ,   .   ...   @   ::
+        (   )   {   }   [   ]   ;   ,   .   ...   @   :: ..
 
-%
+
+masha; rjhj
+13kgd
+kjk34354h
+oRDdw_jjjd
+public static void main(String[]args){
+
+        }
+

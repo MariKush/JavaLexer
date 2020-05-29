@@ -28,7 +28,20 @@ masha; rjhj
 13kgd
 kjk34354h
 oRDdw_jjjd
-public static void main(String[]args){
+public static void main(String[]args)
 
-        }
+0
+142132
+237816L
+        0x7fff_ffff
+
+        0177_7777_7777
+
+        0b0111_1111_1111_1111_1111_1111_1111_1111
+7687d214 6312865F
+673687.9167
+1221_1333.4443
+0.6674287
+.967556
+
 

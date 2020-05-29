@@ -90,6 +90,24 @@ public class Lexer {
                 case IDENTIFIER:
                     identifierState(c);
                     break;
+                case DECIMAL_NUMBER:
+                    decimalNumberState(c);
+                    break;
+                case OCTAL_NUMBER:
+                    octalNumberState(c);
+                    break;
+                case HEX_NUMBER:
+                    hexNumberState(c);
+                    break;
+                case FLOATING_POINT_NUMBER:
+                    floatingPointNumberState(c);
+                    break;
+                case SINGLE_ZERO:
+                    singleZeroState(c);
+                    break;
+                case BINARY_NUMBER:
+                    binaryNumberState(c);
+                    break;
 
             }
         }
@@ -153,6 +171,10 @@ public class Lexer {
             addCharacterToBuffer(c, State.SINGLE_DOT);
         } else if (Character.isLetter(c) || c == '_' || c == '$') {
             addCharacterToBuffer(c, State.IDENTIFIER);
+        } else if (c == '0') {
+            addCharacterToBuffer(c, State.SINGLE_ZERO);
+        } else if (c >= '1' && c <= '9') {
+            addCharacterToBuffer(c, State.DECIMAL_NUMBER);
         }
 
     }
@@ -311,6 +333,8 @@ public class Lexer {
     private void singleDotState(char c) {
         if (c == '.') {//..
             addCharacterToBuffer(c, State.DOUBLE_DOT);
+        } else if (Character.isDigit(c)) {
+            addCharacterToBuffer(c, State.FLOATING_POINT_NUMBER);
         } else {//.
             addToken(TokenType.PUNCTUATION);
             currentIndex--;
@@ -332,7 +356,7 @@ public class Lexer {
     private void identifierState(char c) {
         if (Character.isDigit(c) || Character.isLetter(c) || c == '_' || c == '$') {
             addCharacterToBuffer(c);
-        } else if (isKeyword(buffer)){
+        } else if (isKeyword(buffer)) {
             addToken(TokenType.KEYWORD);
             currentIndex--;
             state = State.START;
@@ -343,7 +367,81 @@ public class Lexer {
         }
     }
 
+    private void decimalNumberState(char c) {
+        if (Character.isDigit(c) || c == '_' || c == 'e' || c == 'E') {
+            addCharacterToBuffer(c);
+        } else if (c == '.') {
+            addCharacterToBuffer(c, State.FLOATING_POINT_NUMBER);
+        } else if (c == 'l' || c == 'L' || c == 'd' || c == 'D' || c == 'f' || c == 'F') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.NUMERIC);
+        } else {
+            addToken(TokenType.NUMERIC);
+            currentIndex--;
+            state = State.START;
+        }
+    }
 
+    private void singleZeroState(char c) {
+        if (c == '.') {
+            addCharacterToBuffer(c, State.FLOATING_POINT_NUMBER);
+        } else if (c == 'x' || c == 'X') {
+            addCharacterToBuffer(c, State.HEX_NUMBER);
+        } else if (c >= '0' && c <= '7' || c == '_') {
+            addCharacterToBuffer(c, State.OCTAL_NUMBER);
+        } else if (c == 'b' || c == 'B') {
+            addCharacterToBuffer(c, State.BINARY_NUMBER);
+        } else {//0
+            addToken(TokenType.NUMERIC);
+            currentIndex--;
+            state = State.START;
+        }
+    }
 
+    private void octalNumberState(char c) {
+        if (c >= '0' && c <= '7' || c == '_') {
+            addCharacterToBuffer(c);
+        } else if (c == 'l' || c == 'L') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.NUMERIC);
+        } else {
+            addToken(TokenType.NUMERIC);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void hexNumberState(char c) {
+        if (Character.isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || c == '_') {
+            addCharacterToBuffer(c);
+        } else {
+            addToken(TokenType.NUMERIC);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void floatingPointNumberState(char c) {
+        if (Character.isDigit(c) || c == '_' || c == 'e' || c == 'E') {
+            addCharacterToBuffer(c);
+        } else if (c == 'd' || c == 'D' || c == 'f' || c == 'F') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.NUMERIC);
+        } else {
+            addToken(TokenType.NUMERIC);
+            currentIndex--;
+            state = State.START;
+        }
+    }
+
+    private void binaryNumberState(char c) {
+        if (c == '0' || c == '1' || c == '_') {
+            addCharacterToBuffer(c);
+        } else {
+            addToken(TokenType.NUMERIC);
+            currentIndex--;
+            state = State.START;
+        }
+    }
 
 }

@@ -7,6 +7,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.lexer.OptionsForOutput.sequenceOfTokens;
+import static com.lexer.OptionsForOutput.tokensSortedByType;
+
 public class Lexer {
 
     private String wholeFile;
@@ -22,6 +25,8 @@ public class Lexer {
     public Lexer(String filePath) throws IOException {
         readWholeFile(filePath);
         analyser();
+        //sequenceOfTokens(tokens);
+        tokensSortedByType(tokens);
     }
 
     private void readWholeFile(String filePath) throws IOException {
@@ -152,7 +157,7 @@ public class Lexer {
 
     private void addToken(TokenType tokenType, String value) {
         tokens.add(new Token(tokenType, value));
-        System.out.println("Add token with type: " + tokenType.toString() + " and value: " + value);
+        //System.out.println("Add token with type: " + tokenType.toString() + " and value: " + value);
     }
 
     private void addToken(TokenType tokenType) {
@@ -592,6 +597,5 @@ public class Lexer {
             addCharacterToBuffer(c);
         }
     }
-
 
 }

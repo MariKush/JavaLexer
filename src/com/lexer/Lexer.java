@@ -7,8 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.lexer.OptionsForOutput.sequenceOfTokens;
-import static com.lexer.OptionsForOutput.tokensSortedByType;
+import static com.lexer.OptionsForOutput.*;
 
 public class Lexer {
 
@@ -25,7 +24,8 @@ public class Lexer {
     public Lexer(String filePath) throws IOException {
         readWholeFile(filePath);
         analyser();
-        //sequenceOfTokens(tokens);
+        sequenceOfTokens(tokens);
+        sourceCodeHighlighting(tokens);
         tokensSortedByType(tokens);
     }
 

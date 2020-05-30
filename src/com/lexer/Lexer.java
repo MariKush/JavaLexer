@@ -128,9 +128,14 @@ public class Lexer {
                     backslashInsideErrorReadSymbolicConstantState(c);
                     break;
                 case LITERAL_CONSTANT:
-                    //literalConstantState(c);
+                    literalConstantState(c);
                     break;
-
+                case BACKSLASH_IN_LITERAL_CONSTANT:
+                    backslashInLiteralConstantState(c);
+                    break;
+                case ERROR_READ_LITERAL_CONSTANT:
+                    errorReadLiteralConstantState(c);
+                    break;
             }
         }
     }
@@ -201,6 +206,9 @@ public class Lexer {
             addCharacterToBuffer(c, State.SYMBOLIC_CONSTANT);
         } else if (c == '\"') {
             addCharacterToBuffer(c, State.LITERAL_CONSTANT);
+        } else {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.ERROR);
         }
 
     }
@@ -489,7 +497,7 @@ public class Lexer {
     private void backslashInSymbolicConstantState(char c) {
         if (c >= '0' && c <= '7') {
             addCharacterToBuffer(c, State.ONE_OCTAL_DIGIT_AFTER_BACKSLASH_IN_SYMBOLIC_CONSTANT);
-        } else if (SymbolType.isEscapeSequence("\\" + c)) {
+        } else if (SymbolType.isEscapeSequence(c)) {
             addCharacterToBuffer(c, State.END_OF_SYMBOLIC_CONSTANT);
         } else {
             addToken(TokenType.ERROR);
@@ -537,7 +545,7 @@ public class Lexer {
         } else if (c == '\'') {
             addCharacterToBuffer(c, State.START);
             addToken(TokenType.ERROR);
-        } else if (c == '\\'){
+        } else if (c == '\\') {
             addCharacterToBuffer(c, State.BACKSLASH_INSIDE_ERROR_READ_SYMBOLIC_CONSTANT);
         } else {
             addCharacterToBuffer(c);
@@ -546,6 +554,43 @@ public class Lexer {
 
     private void backslashInsideErrorReadSymbolicConstantState(char c) {
         addCharacterToBuffer(c, State.ERROR_READ_SYMBOLIC_CONSTANT);
+    }
+
+    private void literalConstantState(char c) {
+        if (c == '\\') {
+            addCharacterToBuffer(c, State.BACKSLASH_IN_LITERAL_CONSTANT);
+        } else if (c == '\"') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.LITERAL);
+        } else if (c == '\n') {
+            addToken(TokenType.ERROR);
+            addToken(TokenType.WHITE_SPACE, c);
+            state = State.START;
+        } else {
+            addCharacterToBuffer(c);
+        }
+    }
+
+    //"STRING\ in buffer
+    private void backslashInLiteralConstantState(char c) {
+        if (SymbolType.isEscapeSequence(c) || (c >= '0' && c <= '7')) {
+            addCharacterToBuffer(c, State.LITERAL_CONSTANT);
+        } else {
+            addCharacterToBuffer(c, State.ERROR_READ_LITERAL_CONSTANT);
+        }
+    }
+
+    private void errorReadLiteralConstantState(char c) {
+        if (c == '\n') {
+            addToken(TokenType.ERROR);
+            addToken(TokenType.WHITE_SPACE, c);
+            state = State.START;
+        } else if (c == '\"') {
+            addCharacterToBuffer(c, State.START);
+            addToken(TokenType.ERROR);
+        } else {
+            addCharacterToBuffer(c);
+        }
     }
 
 

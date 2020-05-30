@@ -13,15 +13,16 @@ public class SymbolType {
             "short", "static", "strictfp", "super", "switch", "synchronized",
             "this", "throw", "throws", "transient", "try", "void", "volatile", "while"));
 
-    public static final HashSet<String> escapeSequences = new HashSet<>(
-            Arrays.asList("\\b", "\\t", "\\n", "\\", "\'", "\"", "\\r", "\\f"));
+    public static final HashSet<Character> escapeSequences = new HashSet<>(
+            Arrays.asList('b', 't', 'n', '\\', '\'', '"', 'r', 'f'));
 
     public static boolean isKeyword(String word) {
         return keywords.contains(word);
     }
 
-    public static boolean isEscapeSequence(String word) {
-        return escapeSequences.contains(word);
+    //экранированная последовательность
+    public static boolean isEscapeSequence(Character character) {
+        return escapeSequences.contains(character);
     }
 
 

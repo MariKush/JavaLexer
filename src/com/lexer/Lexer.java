@@ -236,7 +236,7 @@ public class Lexer {
 
     private void singleLineCommentState(char c) {
         if (c == '\n') {
-            addToken(TokenType.COMMENT);
+            addToken(TokenType.SINGLE_LINE_COMMENT);
             addToken(TokenType.WHITE_SPACE, c);
             state = State.START;
         } else {
@@ -256,7 +256,7 @@ public class Lexer {
     private void multiLineCommentAndStarState(char c) {
         if (c == '/') {
             addCharacterToBuffer(c, State.START);
-            addToken(TokenType.COMMENT);
+            addToken(TokenType.MULTI_LINE_COMMENT);
         } else if (c == '*') {
             addCharacterToBuffer(c);
         } else {

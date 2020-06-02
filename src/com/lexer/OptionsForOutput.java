@@ -40,7 +40,8 @@ public class OptionsForOutput {
                 case SYMBOLIC:
                     System.out.print(ANSI_GREEN + token.getValue());
                     break;
-                case COMMENT:
+                case SINGLE_LINE_COMMENT:
+                case MULTI_LINE_COMMENT:
                     System.out.print(ANSI_WHITE + token.getValue());
                     break;
                 case KEYWORD:

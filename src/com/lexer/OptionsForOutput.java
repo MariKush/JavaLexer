@@ -38,6 +38,8 @@ public class OptionsForOutput {
                     break;
                 case LITERAL:
                 case SYMBOLIC:
+                case BOOLEAN_LITERAL:
+                case NULL_LITERAL:
                     System.out.print(ANSI_GREEN + token.getValue());
                     break;
                 case SINGLE_LINE_COMMENT:

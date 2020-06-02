@@ -143,6 +143,9 @@ public class Lexer {
                     break;
             }
         }
+        if(buffer.length() != 0){
+            addToken(TokenType.ERROR);
+        }
     }
 
 
@@ -399,6 +402,14 @@ public class Lexer {
             addToken(TokenType.KEYWORD);
             currentIndex--;
             state = State.START;
+        } else if (buffer.toString().equals("true") || buffer.toString() == "false") {
+            addToken(TokenType.BOOLEAN_LITERAL);
+            currentIndex--;
+            state = State.START;
+        } else if (buffer.toString().equals("null")) {
+            addToken(TokenType.NULL_LITERAL);
+            currentIndex--;
+            state = State.START;
         } else {
             addToken(TokenType.IDENTIFIER);
             currentIndex--;
@@ -480,7 +491,6 @@ public class Lexer {
             addToken(TokenType.NUMERIC);
             currentIndex--;
             state = State.START;
-
         }
     }
 
